@@ -14,6 +14,21 @@ type post {
   id: ID!
   created_at: DateTime
   body: String
+  subreddit: [subreddit]
+    @materializer(
+      query: "getSubredditListById"
+      arguments: [{ name: "id", field: "subreddit_id" }]
+    )
+  votes: [vote]
+    @materializer(
+      query: "getVoteByPostId"
+      arguments: [{ name: "post_id", field: "id" }]
+    )
+  comments: [comment]
+    @materializer(
+      query: "getCommentsByPostId"
+      arguments: [{ name: "post_id", field: "id" }]
+    )
 }
 
 type subreddit {
@@ -49,6 +64,14 @@ type Query {
       schema: "public"
       query: """
       SELECT "created_at", "id", "post_id", "text", "username" FROM "comment" LIMIT $1 OFFSET $2
+      """
+      configuration: "postgresql_config"
+    )
+  getCommentsByPostId(post_id: ID!): [comment]
+    @dbquery(
+      type: "postgresql"
+      query: """
+      select * from "comment" where "post_id"=$1
       """
       configuration: "postgresql_config"
     )
@@ -91,11 +114,19 @@ type Query {
       table: "subreddit"
       configuration: "postgresql_config"
     )
-  getSubredditListByTopic(topic:String!):[subreddit]
+  getSubredditListById(id: ID!): [subreddit]
     @dbquery(
-      type:"postgresql"
-      query:"""
-        select * from "subreddit" where "topic"=$1
+      type: "postgresql"
+      query: """
+      select * from "subreddit" where "id"=$1
+      """
+      configuration: "postgresql_config"
+    )
+  getSubredditListByTopic(topic: String!): [subreddit]
+    @dbquery(
+      type: "postgresql"
+      query: """
+      select * from "subreddit" where "topic"=$1
       """
       configuration: "postgresql_config"
     )
@@ -114,6 +145,15 @@ type Query {
       type: "postgresql"
       schema: "public"
       table: "vote"
+      configuration: "postgresql_config"
+    )
+  getVoteByPostId(post_id: ID!): [vote]
+    @dbquery(
+      type: "postgresql"
+      query: """
+      select * from "vote" where "post_id"=$1
+      order by "created_at" desc
+      """
       configuration: "postgresql_config"
     )
   votePaginatedList(first: Int, after: Int): [vote]
