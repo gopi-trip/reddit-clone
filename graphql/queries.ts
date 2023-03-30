@@ -10,19 +10,19 @@ export const GET_POSTS = gql`
       created_at
       subreddit_id
       username
-      subreddit:{
+      subreddit {
         created_at
         id
         topic
       }
-      comments:{
+      comments {
         created_at
         id
         post_id
         text
         username
       }
-      vote:{
+      votes {
         created_at
         id
         post_id

@@ -32,7 +32,7 @@ const Postbox = () => {
 
   const onFormSubmit = handleSubmit(async (formData) => {
     const notification = toast.loading("Creating new Post!");
-
+    
     try {
       const {
         data: { getSubredditListByTopic },
