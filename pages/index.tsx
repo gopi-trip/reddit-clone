@@ -2,6 +2,7 @@ import Head from "next/head";
 import { Inter } from "next/font/google";
 import styles from "@/styles/Home.module.css";
 import Postbox from "@/components/Postbox";
+import Feed from "@/components/Feed";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,6 +17,10 @@ export default function Home() {
       </Head>
       {/* <Header /> */}
       <Postbox />
+
+      <div className="flex">
+        <Feed />
+      </div>
     </div>
   );
 }

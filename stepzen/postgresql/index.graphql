@@ -91,6 +91,14 @@ type Query {
       table: "subreddit"
       configuration: "postgresql_config"
     )
+  getSubredditListByTopic(topic:String!):[subreddit]
+    @dbquery(
+      type:"postgresql"
+      query:"""
+        select * from "subreddit" where "topic"=$1
+      """
+      configuration: "postgresql_config"
+    )
   subredditPaginatedList(first: Int, after: Int): [subreddit]
     @dbquery(
       type: "postgresql"

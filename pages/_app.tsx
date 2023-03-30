@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react";
 import Header from "@/components/Header";
 import { ApolloProvider } from "@apollo/client";
 import client from "../apollo-client";
+import { Toaster } from "react-hot-toast";
 
 export default function App({
   Component,
@@ -11,6 +12,7 @@ export default function App({
 }: AppProps) {
   return (
     <ApolloProvider client={client}>
+      <Toaster />
       <SessionProvider>
         <div className="h-screen overflow-y-scroll bg-slate-200">
           <Header />
