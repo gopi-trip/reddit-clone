@@ -9,6 +9,7 @@ import {
 import React from "react";
 import Avatar from "./Avatar";
 import TimeAgo from "react-timeago";
+import Link from "next/link";
 
 type props = {
   post: Post;
@@ -28,13 +29,16 @@ const Post = ({ post }: props) => {
         {/* Header */}
         <div className="flex items-center space-x-2">
           <Avatar seed={post.subreddit[0]?.topic} />
-          <p className="text-xs text-gray-400">
+          <Link
+            href={`/subreddit/${post.subreddit[0]?.topic}`}
+            className="text-xs text-gray-400"
+          >
             <span className="font-bold text-black hover:text-blue-400 hover:underline">
               r/{post.subreddit[0]?.topic}
             </span>{" "}
             . Posted by u/
             {post.username} <TimeAgo date={post.created_at} />
-          </p>
+          </Link>
         </div>
         {/* Body */}
         <div className="py-4">

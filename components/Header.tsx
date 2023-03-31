@@ -11,13 +11,17 @@ import {
   VideoCameraIcon,
 } from "@heroicons/react/24/solid";
 import { useSession, signIn, signOut } from "next-auth/react";
+import Link from "next/link";
 
 const Header = () => {
   const { data: session } = useSession();
   return (
     <div className="sticky top-0 z-50 flex bg-white items-center px-4 py-2 shadow-sm">
       {/* logo of reddit */}
-      <div className="relative flex gap-1 flex-shrink-0 cursor-pointer">
+      <Link
+        href={`/`}
+        className="relative flex gap-1 flex-shrink-0 cursor-pointer"
+      >
         <Image
           alt="reddit logo"
           src={`https://imgs.search.brave.com/mbonb_vlURUFhHAburC1eb5XVz7fClX3RU7BZd3qU-I/rs:fit:1200:1200:1/g:ce/aHR0cHM6Ly9sb2dv/ZG93bmxvYWQub3Jn/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDE4/LzAyL3JlZGRpdC1s/b2dvLTE2LnBuZw`}
@@ -26,7 +30,7 @@ const Header = () => {
           height={10}
         />
         <p>reddit</p>
-      </div>
+      </Link>
       <div className="flex items-center mx-7 xl:min-w-[300px]">
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -133,7 +137,7 @@ const Header = () => {
             <p className="text-gray-400">1 Karma</p>
           </div>
           <div
-           className="cursor-pointer"
+            className="cursor-pointer"
             onClick={() => {
               signOut();
             }}

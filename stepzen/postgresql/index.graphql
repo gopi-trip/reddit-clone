@@ -95,6 +95,10 @@ type Query {
       type: "postgresql"
       schema: "public"
       table: "post"
+      query: """
+      select * from "post"
+      order by "post"."created_at" desc
+      """
       configuration: "postgresql_config"
     )
   postPaginatedList(first: Int, after: Int): [post]
@@ -103,6 +107,17 @@ type Query {
       schema: "public"
       query: """
       SELECT "body", "created_at", "id", "image", "subreddit_id", "title", "username" FROM "post" LIMIT $1 OFFSET $2
+      """
+      configuration: "postgresql_config"
+    )
+  postByTopic(topic: String!): [post]
+    @dbquery(
+      type: "postgresql"
+      query: """
+      select *,"post".id as id from "post"
+      join "subreddit" on "subreddit"."id" = "post"."subreddit_id"
+      where "subreddit"."topic" = $1
+      order by "post"."created_at" desc
       """
       configuration: "postgresql_config"
     )
