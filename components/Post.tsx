@@ -10,14 +10,26 @@ import React from "react";
 import Avatar from "./Avatar";
 import TimeAgo from "react-timeago";
 import Link from "next/link";
+import { Jelly } from "@uiball/loaders";
 
 type props = {
   post: Post;
 };
 
 const Post = ({ post }: props) => {
+  if (!post) {
+    return (
+      <div className="flex w-full items-center justify-center p-10 text-xl">
+        <Jelly size={50} color="#FF4501" />
+      </div>
+    );
+  }
   return (
-    <div className="flex cursor-pointer rounded-md border border-gray-300 bg-white shadow-sm hover:border-gray-600">
+    <Link
+      href={`/post/${post.id}`}
+      passHref
+      className="flex cursor-pointer rounded-md border border-gray-300 bg-white shadow-sm hover:border-gray-600"
+    >
       {/* votes */}
       <div className="flex flex-col items-center justify-start space-y-1 rounded-l-md bg-gray-50 p-4 text-gray-400">
         <ArrowUpIcon className="voteButtons hover:text-red-400" />
@@ -72,7 +84,7 @@ const Post = ({ post }: props) => {
           </div>
         </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

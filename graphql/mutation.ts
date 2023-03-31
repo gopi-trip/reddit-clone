@@ -34,3 +34,24 @@ export const ADD_SUBREDDIT = gql`
     }
   }
 `;
+
+export const ADD_COMMENT = gql`
+ mutation MyMutation(
+  $username:String
+  $post_id:ID
+  $text: String
+  $created_at:DateTime
+ ){
+  insertComment(
+    username:$username
+    post_id:$post_id
+    text:$text
+    created_at:$created_at
+  ){
+    id
+    text
+    username
+    post_id
+  }
+ }
+`;

@@ -8,17 +8,17 @@ type props = {
 };
 
 const Feed = ({ topic }: props) => {
-  const { data, error } = topic
-    ? useQuery(GET_POSTS_BY_TOPIC, {
+  const { data, error } = !topic
+    ? useQuery(GET_POSTS)
+    : useQuery(GET_POSTS_BY_TOPIC, {
         variables: {
           topic: topic,
         },
-      })
-    : useQuery(GET_POSTS);
+      });
 
-  console.log(data, error?.cause);
+  // console.log(data, error?.cause);
 
-  const posts: Post[] = topic ? data?.postByTopic : data?.postList;
+  const posts: Post[] = !topic ? data?.postList : data?.postByTopic;
   return (
     <div className="mt-5 space-y-4">
       {posts?.map((post: Post, index) => (
