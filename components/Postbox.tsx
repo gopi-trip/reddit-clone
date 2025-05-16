@@ -22,6 +22,7 @@ type props = {
 
 const Postbox = ({ subreddit }: props) => {
   const [imageDialogueOpen, setImageDialogueOpen] = useState<boolean>(false);
+  const { data: session } = useSession();
 
   const [createSubreddit] = useMutation(ADD_SUBREDDIT);
   const [createPost] = useMutation(ADD_POST, {
@@ -37,6 +38,12 @@ const Postbox = ({ subreddit }: props) => {
   } = useForm<Formdata>();
 
   const onFormSubmit = handleSubmit(async (formData) => {
+    // Check if user is logged in
+    if (!session) {
+      toast.error("You need to be logged in to post!");
+      return;
+    }
+
     const notification = toast.loading("Creating new Post!");
 
     try {
@@ -52,9 +59,6 @@ const Postbox = ({ subreddit }: props) => {
 
       if (SubredditExists) {
         // create the post
-
-        console.log("Creating post --> " + formData);
-
         const {
           data: { insertPost: newPost },
         } = await createPost({
@@ -63,7 +67,7 @@ const Postbox = ({ subreddit }: props) => {
             body: formData.postBody,
             image: formData.postImage || "",
             subreddit_id: getSubredditListByTopic[0].id,
-            username: session?.user?.name,
+            username: session.user?.name || "anonymous",
           },
         });
         console.log("New Post created --> ", newPost);
@@ -87,7 +91,7 @@ const Postbox = ({ subreddit }: props) => {
             body: formData.postBody,
             image: formData.postImage || "",
             subreddit_id: newSubreddit.id,
-            username: session?.user?.name,
+            username: session.user?.name || "anonymous",
           },
         });
 
@@ -112,7 +116,6 @@ const Postbox = ({ subreddit }: props) => {
     }
   });
 
-  const { data: session } = useSession();
   return (
     <form
       onSubmit={onFormSubmit}
