@@ -19,6 +19,7 @@ type props = {
 
 const Postbox = ({ subreddit }: props) => {
   const [imageDialogueOpen, setImageDialogueOpen] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const { data: session } = useSession();
 
   const {
@@ -30,16 +31,27 @@ const Postbox = ({ subreddit }: props) => {
   } = useForm<Formdata>();
 
   const onFormSubmit = handleSubmit(async (formData) => {
+    // Prevent double submission
+    if (isSubmitting) return;
+    
     // Check if user is logged in
     if (!session) {
       toast.error("You need to be logged in to post!");
       return;
     }
 
-    const notification = toast.loading("Creating new Post!");
+    const notification = toast.loading("Creating new Post...");
+    setIsSubmitting(true);
 
     try {
       const topic = subreddit || formData.subreddit;
+      
+      if (!topic) {
+        toast.error("Subreddit is required", { id: notification });
+        return;
+      }
+      
+      console.log(`Creating post in subreddit: ${topic}`);
       
       // Check if subreddit exists
       const { data: existingSubreddit, error: subredditError } = await supabase
@@ -48,9 +60,14 @@ const Postbox = ({ subreddit }: props) => {
         .eq('topic', topic)
         .maybeSingle();
         
+      if (subredditError && subredditError.code !== 'PGRST116') {
+        throw subredditError;
+      }
+      
       let subredditId;
       
       if (!existingSubreddit) {
+        console.log(`Creating new subreddit: ${topic}`);
         // Create new subreddit
         const { data: newSubreddit, error: createSubredditError } = await supabase
           .from('subreddits')
@@ -59,26 +76,40 @@ const Postbox = ({ subreddit }: props) => {
           .single();
           
         if (createSubredditError) throw createSubredditError;
+        
+        if (!newSubreddit) {
+          throw new Error("Failed to create subreddit");
+        }
+        
         subredditId = newSubreddit.id;
-        console.log("Subreddit created, now creating post");
+        console.log("Subreddit created, ID:", subredditId);
       } else {
         subredditId = existingSubreddit.id;
+        console.log("Using existing subreddit, ID:", subredditId);
       }
       
       // Create the post
+      const postData = {
+        title: formData.postTitle,
+        body: formData.postBody || "",
+        image: formData.postImage || "",
+        subreddit_id: subredditId,
+        username: session.user?.name || "anonymous",
+      };
+      
+      console.log("Creating post with data:", postData);
+      
       const { data: newPost, error: postError } = await supabase
         .from('posts')
-        .insert([{
-          title: formData.postTitle,
-          body: formData.postBody,
-          image: formData.postImage || "",
-          subreddit_id: subredditId,
-          username: session.user?.name || "anonymous",
-        }])
+        .insert([postData])
         .select()
         .single();
         
       if (postError) throw postError;
+      
+      if (!newPost) {
+        throw new Error("Failed to create post");
+      }
       
       console.log("New Post created -->", newPost);
 
@@ -92,11 +123,25 @@ const Postbox = ({ subreddit }: props) => {
       toast.success("New post created!", {
         id: notification,
       });
-    } catch (error) {
-      toast.error("Sorry, something went wrong. Please try again!", {
+    } catch (error: any) {
+      console.error("Error creating post:", error);
+      
+      let errorMessage = "Sorry, something went wrong. Please try again!";
+      
+      // More specific error messages based on the error
+      if (error?.code === '23505') {
+        errorMessage = "This post already exists!";
+      } else if (error?.code === '23502') {
+        errorMessage = "Required fields are missing!";
+      } else if (error?.message) {
+        errorMessage = `Error: ${error.message}`;
+      }
+      
+      toast.error(errorMessage, {
         id: notification,
       });
-      console.log(error);
+    } finally {
+      setIsSubmitting(false);
     }
   });
 
@@ -109,8 +154,8 @@ const Postbox = ({ subreddit }: props) => {
         <Avatar large={false} />
         <input
           {...register("postTitle", { required: true })}
-          disabled={!session}
-          type={`text`}
+          disabled={!session || isSubmitting}
+          type="text"
           placeholder={
             session
               ? subreddit
@@ -121,14 +166,14 @@ const Postbox = ({ subreddit }: props) => {
           className="flex-1 rounded-md bg-gray-50 p-2 pl-5 outline-none"
         />
         <PhotoIcon
-          className={`h-6 cursor-pointer text-gray-300 ${
-            imageDialogueOpen && "text-blue-300"
-          }`}
+          className={`h-6 cursor-pointer ${
+            imageDialogueOpen ? "text-blue-300" : "text-gray-300"
+          } ${!session && "opacity-50"}`}
           onClick={() => {
-            setImageDialogueOpen(!imageDialogueOpen);
+            if (session) setImageDialogueOpen(!imageDialogueOpen);
           }}
         />
-        <LinkIcon className="h-6 text-gray-300" />
+        <LinkIcon className={`h-6 text-gray-300 ${!session && "opacity-50"}`} />
       </div>
 
       {!!watch("postTitle") && (
@@ -137,9 +182,10 @@ const Postbox = ({ subreddit }: props) => {
           <div className="flex items-center px-2">
             <p className="min-w-[90px]">Body:</p>
             <input
-              type={`text`}
+              type="text"
               placeholder="Text (optional)"
               {...register("postBody")}
+              disabled={isSubmitting}
               className="m-2 flex-1 bg-blue-50 p-2 outline-none"
             />
           </div>
@@ -149,9 +195,10 @@ const Postbox = ({ subreddit }: props) => {
             <div className="flex items-center px-2">
               <p className="min-w-[90px]">Subreddit:</p>
               <input
-                type={`text`}
+                type="text"
                 placeholder="ie reactjs"
                 {...register("subreddit", { required: true })}
+                disabled={isSubmitting}
                 className="m-2 flex-1 bg-blue-50 p-2 outline-none"
               />
             </div>
@@ -161,9 +208,10 @@ const Postbox = ({ subreddit }: props) => {
             <div className="flex items-center px-2">
               <p className="min-w-[90px]">Image URL:</p>
               <input
-                type={`text`}
+                type="text"
                 placeholder="Optional"
                 {...register("postImage")}
+                disabled={isSubmitting}
                 className="m-2 flex-1 bg-blue-50 p-2 outline-none"
               />
             </div>
@@ -174,7 +222,7 @@ const Postbox = ({ subreddit }: props) => {
               {errors.postTitle?.type === "required" && (
                 <p>- A post title is required!</p>
               )}
-              {errors.subreddit?.type === "required" && (
+              {errors.subreddit?.type === "required" && !subreddit && (
                 <p>- Subreddit is required for the post!</p>
               )}
             </div>
@@ -182,10 +230,13 @@ const Postbox = ({ subreddit }: props) => {
 
           {!!watch("postTitle") && (
             <button
-              className="w-full rounded-full bg-blue-400 text-white p-2"
+              className={`w-full rounded-full ${
+                isSubmitting ? "bg-gray-300" : "bg-blue-400 hover:bg-blue-500"
+              } text-white p-2`}
               type="submit"
+              disabled={isSubmitting}
             >
-              Create post
+              {isSubmitting ? "Creating post..." : "Create post"}
             </button>
           )}
         </div>

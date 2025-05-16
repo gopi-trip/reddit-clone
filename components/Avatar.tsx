@@ -9,6 +9,12 @@ type Pageprops = {
 
 const Avatar = ({ seed, large }: Pageprops) => {
   const { data: session } = useSession();
+  
+  // Using updated DiceBear API URL
+  const avatarUrl = `https://api.dicebear.com/7.x/open-peeps/svg?seed=${
+    seed || session?.user?.name || "placeholder"
+  }`;
+  
   return (
     <div
       className={`h-10 w-10 relative overflow-hidden rounded-full border border-gray-300 bg-white ${
@@ -18,9 +24,7 @@ const Avatar = ({ seed, large }: Pageprops) => {
       <Image
         fill
         alt="User avatar"
-        src={`https://avatars.dicebear.com/api/open-peeps/${
-          seed || session?.user?.name || "placeholder"
-        }.svg`}
+        src={avatarUrl}
       />
     </div>
   );

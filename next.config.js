@@ -2,8 +2,8 @@
 const nextConfig = {
   reactStrictMode: true,
   images:{
-    domains:['links.papareact.com','imgs.search.brave.com','avatars.dicebear.com']
+    domains:['links.papareact.com','imgs.search.brave.com','https://api.dicebear.com']
   }
 }
 
-module.exports = nextConfig
+export default nextConfig
