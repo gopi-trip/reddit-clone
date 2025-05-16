@@ -11,12 +11,13 @@ import Avatar from "./Avatar";
 import TimeAgo from "react-timeago";
 import Link from "next/link";
 import { Jelly } from "@uiball/loaders";
+import { Post as PostType } from "../types/Post";
 
-type props = {
-  post: Post;
+type Props = {
+  post: PostType | undefined;
 };
 
-const Post = ({ post }: props) => {
+const Post = ({ post }: Props) => {
   if (!post) {
     return (
       <div className="flex w-full items-center justify-center p-10 text-xl">
@@ -58,7 +59,7 @@ const Post = ({ post }: props) => {
           <p className="mt-2 text-sm font-light">{post.body}</p>
         </div>
         {/* Image */}
-        {post.image.length !== 0 && (
+        {post.image && post.image.length !== 0 && (
           <img src={post.image} className="w-full" alt="reddit post's image" />
         )}
         {/* Footer */}

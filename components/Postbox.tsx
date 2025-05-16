@@ -1,7 +1,4 @@
-import client from "@/apollo-client";
-import { ADD_POST, ADD_SUBREDDIT } from "@/graphql/mutation";
-import { GET_POSTS, GET_SUBREDDIT_BY_TOPIC } from "@/graphql/queries";
-import { useMutation } from "@apollo/client";
+import supabase from "@/lib/supabaseClient";
 import { LinkIcon, PhotoIcon } from "@heroicons/react/24/solid";
 import { useSession } from "next-auth/react";
 import React, { useState } from "react";
@@ -24,11 +21,6 @@ const Postbox = ({ subreddit }: props) => {
   const [imageDialogueOpen, setImageDialogueOpen] = useState<boolean>(false);
   const { data: session } = useSession();
 
-  const [createSubreddit] = useMutation(ADD_SUBREDDIT);
-  const [createPost] = useMutation(ADD_POST, {
-    refetchQueries: [GET_POSTS, "postList"],
-  });
-
   const {
     register,
     setValue,
@@ -47,56 +39,48 @@ const Postbox = ({ subreddit }: props) => {
     const notification = toast.loading("Creating new Post!");
 
     try {
-      const {
-        data: { getSubredditListByTopic },
-      } = await client.query({
-        query: GET_SUBREDDIT_BY_TOPIC,
-        variables: {
-          topic: subreddit || formData.subreddit,
-        },
-      });
-      const SubredditExists = getSubredditListByTopic.length > 0;
-
-      if (SubredditExists) {
-        // create the post
-        const {
-          data: { insertPost: newPost },
-        } = await createPost({
-          variables: {
-            title: formData.postTitle,
-            body: formData.postBody,
-            image: formData.postImage || "",
-            subreddit_id: getSubredditListByTopic[0].id,
-            username: session.user?.name || "anonymous",
-          },
-        });
-        console.log("New Post created --> ", newPost);
+      const topic = subreddit || formData.subreddit;
+      
+      // Check if subreddit exists
+      const { data: existingSubreddit, error: subredditError } = await supabase
+        .from('subreddits')
+        .select('id')
+        .eq('topic', topic)
+        .maybeSingle();
+        
+      let subredditId;
+      
+      if (!existingSubreddit) {
+        // Create new subreddit
+        const { data: newSubreddit, error: createSubredditError } = await supabase
+          .from('subreddits')
+          .insert([{ topic }])
+          .select()
+          .single();
+          
+        if (createSubredditError) throw createSubredditError;
+        subredditId = newSubreddit.id;
+        console.log("Subreddit created, now creating post");
       } else {
-        // create the subreddit and then post
-        const {
-          data: { insertSubreddit: newSubreddit },
-        } = await createSubreddit({
-          variables: {
-            topic: subreddit || formData.subreddit,
-          },
-        });
-
-        console.log("Subreddit created, now creating post --> " + formData);
-
-        const {
-          data: { insertPost: newPost },
-        } = await createPost({
-          variables: {
-            title: formData.postTitle,
-            body: formData.postBody,
-            image: formData.postImage || "",
-            subreddit_id: newSubreddit.id,
-            username: session.user?.name || "anonymous",
-          },
-        });
-
-        console.log("New Post created --> ", newPost);
+        subredditId = existingSubreddit.id;
       }
+      
+      // Create the post
+      const { data: newPost, error: postError } = await supabase
+        .from('posts')
+        .insert([{
+          title: formData.postTitle,
+          body: formData.postBody,
+          image: formData.postImage || "",
+          subreddit_id: subredditId,
+          username: session.user?.name || "anonymous",
+        }])
+        .select()
+        .single();
+        
+      if (postError) throw postError;
+      
+      console.log("New Post created -->", newPost);
 
       // clearing the fields after the post has been added
       setValue("postBody", "");
