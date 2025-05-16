@@ -23,12 +23,12 @@ const Header = () => {
         className="relative flex gap-1 flex-shrink-0 cursor-pointer"
       >
         <Image
-          alt="reddit logo"
-          src={`https://imgs.search.brave.com/mbonb_vlURUFhHAburC1eb5XVz7fClX3RU7BZd3qU-I/rs:fit:1200:1200:1/g:ce/aHR0cHM6Ly9sb2dv/ZG93bmxvYWQub3Jn/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDE4/LzAyL3JlZGRpdC1s/b2dvLTE2LnBuZw`}
-          className="object-contain"
-          width={20}
-          height={10}
-        />
+  alt="reddit logo"
+  src={`https://imgs.search.brave.com/mbonb_vlURUFhHAburC1eb5XVz7fClX3RU7BZd3qU-I/rs:fit:1200:1200:1/g:ce/aHR0cHM6Ly9sb2dv/ZG93bmxvYWQub3Jn/L3dwLWNvbnRlbnQv/dXBsb2Fkcy8yMDE4/LzAyL3JlZGRpdC1s/b2dvLTE2LnBuZw`}
+  className="object-contain"
+  width={20}
+  height={10}
+/>
         <p>reddit</p>
       </Link>
       <div className="flex items-center mx-7 xl:min-w-[300px]">

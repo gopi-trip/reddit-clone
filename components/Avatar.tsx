@@ -21,11 +21,12 @@ const Avatar = ({ seed, large }: Pageprops) => {
         large && "h-20 w-20"
       }`}
     >
-      <Image
-        fill
-        alt="User avatar"
-        src={avatarUrl}
-      />
+     <Image
+  fill
+  alt="User avatar"
+  src={avatarUrl}
+  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"  // Add this line
+/>
     </div>
   );
 };
